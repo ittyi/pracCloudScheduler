@@ -1,1 +1,1 @@
-# pracCloudScheduler
+# pracGoGeneral
