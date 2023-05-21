@@ -1,6 +1,6 @@
 package main
 
-import "github.com/ittyi/hellotest/testi"
+import "github.com/ittyi/pracGoGeneral/test/testi"
 
 func main(){
 	log.Printf("check")
