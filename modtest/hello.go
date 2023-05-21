@@ -1,4 +1,4 @@
-package hello
+package modtest
 
 import "fmt"
 
