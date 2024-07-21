@@ -23,11 +23,11 @@ func main() {
 	password := os.Getenv("PASSWORD")
 	from := os.Getenv("FROM")
 
-	fmt.Println(hostname)
-	fmt.Println(port)
-	fmt.Println(to)
-	fmt.Println(password)
-	fmt.Println(from)
+	// fmt.Println(hostname)
+	// fmt.Println(port)
+	// fmt.Println(to)
+	// fmt.Println(password)
+	// fmt.Println(from)
 
 	recipients := []string{to}
 
