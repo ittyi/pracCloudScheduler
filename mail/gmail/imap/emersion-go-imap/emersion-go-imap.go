@@ -18,7 +18,7 @@ func main() {
 }
 
 func GetSendbox() {
-	err := godotenv.Load("../../.env")
+	err := godotenv.Load("../.env")
 
 	if err != nil {
 		fmt.Printf("env が読み込み出来ませんでした: %v", err)
@@ -146,9 +146,49 @@ func Listmailbox() {
 		done <- c.List("", "*", mailboxes)
 	}()
 
+	criteria := imap.NewSearchCriteria()
+	criteria.Header.Add("In-Reply-To", "<CAMnZNN1TaUR2_paLoMCe2FUv0CY-SQ=2OfGTOk0potBvS9jG7A@mail.gmail.com>")
+
 	log.Println("Mailboxes:")
 	for m := range mailboxes {
+		log.Println("m.Attributes:", m.Attributes)
+		log.Println("m.Name:", m.Name)
+
+		log.Println("imap.AllAttr:", imap.AllAttr)
 		log.Println("* " + m.Name)
+		is := false
+		for _, v := range m.Attributes {
+			if "\\All" == v {
+				is = true
+				break
+			}
+		}
+		if !is {
+			log.Println("👊 All じゃないのでキャンセル")
+			continue
+		}
+
+		mbox, err := c.Select(m.Name, true)
+		if err != nil {
+			log.Println("😡")
+			continue
+		}
+		if mbox.Messages == 0 {
+			continue
+		}
+		log.Println("😂")
+
+		seqNums, err := c.Search(criteria)
+		if err != nil {
+			log.Println("seqNums 😡")
+			continue
+		}
+		log.Println("len(seqNums) == 0: ", len(seqNums) == 0)
+		if len(seqNums) == 0 || len(seqNums) > 1 {
+			log.Println("len(seqNums) 😡")
+			continue
+		}
+		log.Println("😂😂")
 	}
 
 	if err := <-done; err != nil {
