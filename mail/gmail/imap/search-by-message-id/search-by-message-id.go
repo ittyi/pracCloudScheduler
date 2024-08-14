@@ -6,7 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
-	"path/filepath"
+	"strconv"
 
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
@@ -120,22 +120,43 @@ func main() {
 				// インラインパートの処理（本文など）
 				buf := new(bytes.Buffer)
 				buf.ReadFrom(part.Body)
-				fmt.Println("本文:", buf.String())
+				// fmt.Println("本文:", buf.String())
 			case *mail.AttachmentHeader:
-				// 添付ファイルの処理
+				// 添付ファイル名取得
 				filename, _ := h.Filename()
-				file, err := os.Create(filepath.Join("attachments", filename))
-				fmt.Println("file:", file)
-				if err != nil {
-					log.Fatal(err)
-				}
-				defer file.Close()
+				fmt.Println("Found attachment:", filename)
+				fmt.Println("part.Header:", part.Header)
 
-				log.Println("part.Body:", part.Body)
-				_, err = file.ReadFrom(part.Body)
+				// 添付ファイルのContent-Lengthを取得
+				contentLengthStr := part.Header.Get("Content-Length")
+				var contentLength int64
+				if contentLengthStr != "" {
+					var err error
+					contentLength, err = strconv.ParseInt(contentLengthStr, 10, 64)
+					if err != nil {
+						log.Fatalf("error parsing Content-Length: %v", err)
+					}
+				}
+				fmt.Println("contentLength:", contentLength)
+
+				// 添付ファイルの内容を取得してデコード
+				// Base64エンコードされたデータを取得
+				attachmentData, err := io.ReadAll(part.Body)
 				if err != nil {
 					log.Fatal(err)
 				}
+
+				// サイズが一致するか確認
+				fmt.Println("サイズが一致するか確認:", contentLength > 0 && int64(len(attachmentData)) != contentLength)
+				if contentLength > 0 && int64(len(attachmentData)) != contentLength {
+					log.Fatalf("file size mismatch: expected %d bytes, got %d bytes", contentLength, len(attachmentData))
+				}
+
+				err = os.WriteFile(filename, attachmentData, 0644)
+				if err != nil {
+					log.Fatalf("error writing file: %v", err)
+				}
+
 				fmt.Printf("添付ファイルを保存しました: %s\n", filename)
 			}
 		}
