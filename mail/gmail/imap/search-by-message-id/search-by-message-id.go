@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"log"
@@ -32,10 +33,21 @@ func main() {
 	fmt.Println(from)
 
 	// Gmail のサーバーに接続
-	c, err := client.DialTLS("imap.gmail.com:993", nil)
+	// c, err := client.DialTLS("imap.gmail.com:993", nil)
+	// c, err := client.DialTLS(
+	// 	"imap-mail.outlook.com:143",
+	// 	nil,
+	// )
+	c, err := client.Dial("imap-mail.outlook.com:143")
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// STARTTLS を使用して接続をアップグレード
+	if err := c.StartTLS(&tls.Config{}); err != nil {
+		log.Fatal(err)
+	}
+
 	defer c.Logout()
 
 	// ログイン（アプリパスワードを使用）
@@ -52,7 +64,7 @@ func main() {
 
 	// メッセージIDによる検索
 	criteria := imap.NewSearchCriteria()
-	criteria.Header.Add("Message-ID", "<>") // 例: <unique-message-id@example.com>
+	criteria.Header.Add("Message-ID", "") // 例: <unique-message-id@example.com>
 
 	uids, err := c.Search(criteria)
 	if err != nil {
@@ -66,12 +78,9 @@ func main() {
 	items := []imap.FetchItem{section.FetchItem()}
 
 	msgs := make(chan *imap.Message, len(uids))
-	go func() {
-		if err := c.Fetch(seqSet, items, msgs); err != nil {
-			log.Fatal(err)
-		}
-	}()
-
+	if err := c.Fetch(seqSet, items, msgs); err != nil {
+		log.Fatal(err)
+	}
 	for msg := range msgs {
 		r := msg.GetBody(section)
 		if r == nil {
@@ -92,19 +101,19 @@ func main() {
 			fmt.Println("Message-ID:", messageID)
 		}
 
-		references, err := header.Text("References")
-		if err != nil {
-			log.Println("References ヘッダーが存在しません")
-		} else {
-			fmt.Println("References:", references)
-		}
+		// references, err := header.Text("References")
+		// if err != nil {
+		// 	log.Println("References ヘッダーが存在しません")
+		// } else {
+		// 	fmt.Println("References:", references)
+		// }
 
-		inReplyTo, err := header.Text("In-Reply-To")
-		if err != nil {
-			log.Println("In-Reply-To ヘッダーが存在しません")
-		} else {
-			fmt.Println("In-Reply-To:", inReplyTo)
-		}
+		// inReplyTo, err := header.Text("In-Reply-To")
+		// if err != nil {
+		// 	log.Println("In-Reply-To ヘッダーが存在しません")
+		// } else {
+		// 	fmt.Println("In-Reply-To:", inReplyTo)
+		// }
 
 		// メッセージの各パートを解析
 		for {
@@ -120,7 +129,7 @@ func main() {
 				// インラインパートの処理（本文など）
 				buf := new(bytes.Buffer)
 				buf.ReadFrom(part.Body)
-				// fmt.Println("本文:", buf.String())
+				fmt.Println("本文:", buf.String())
 			case *mail.AttachmentHeader:
 				// 添付ファイル名取得
 				filename, _ := h.Filename()
