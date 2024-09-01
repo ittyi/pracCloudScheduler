@@ -147,30 +147,31 @@ func Listmailbox() {
 	}()
 
 	criteria := imap.NewSearchCriteria()
-	criteria.Header.Add("In-Reply-To", "<CAMnZNN1TaUR2_paLoMCe2FUv0CY-SQ=2OfGTOk0potBvS9jG7A@mail.gmail.com>")
+	criteria.Header.Add("In-Reply-To", "<>")
 
 	log.Println("Mailboxes:")
 	for m := range mailboxes {
 		log.Println("m.Attributes:", m.Attributes)
 		log.Println("m.Name:", m.Name)
 
-		log.Println("imap.AllAttr:", imap.AllAttr)
-		log.Println("* " + m.Name)
-		is := false
-		for _, v := range m.Attributes {
-			if "\\All" == v {
-				is = true
-				break
-			}
-		}
-		if !is {
-			log.Println("👊 All じゃないのでキャンセル")
-			continue
-		}
+		// log.Println("imap.AllAttr:", imap.AllAttr)
+		// log.Println("* " + m.Name)
+		// is := false
+		// for _, v := range m.Attributes {
+		// 	if "\\All" == v {
+		// 		is = true
+		// 		break
+		// 	}
+		// }
+		// if !is {
+		// 	// log.Println("👊 All じゃないのでキャンセル")
+		// 	continue
+		// }
 
 		mbox, err := c.Select(m.Name, true)
 		if err != nil {
-			log.Println("😡")
+			// log.Println("😡")
+			log.Println("err:", err)
 			continue
 		}
 		if mbox.Messages == 0 {

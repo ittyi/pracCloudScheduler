@@ -22,6 +22,7 @@ func main() {
 	to := os.Getenv("To")
 	password := os.Getenv("PASSWORD")
 	from := os.Getenv("FROM")
+	usecase := os.Getenv("USERNAME")
 
 	// fmt.Println(hostname)
 	// fmt.Println(port)
@@ -31,7 +32,7 @@ func main() {
 
 	recipients := []string{to}
 
-	auth := smtp.PlainAuth("", from, password, hostname)
+	auth := smtp.PlainAuth("", usecase, password, hostname)
 
 	msg := []byte("To: " + to + "\r\n" +
 		"Subject: Test Email2\r\n" +
